@@ -4,7 +4,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 from torch.utils.data import DataLoader, TensorDataset
 import torch.nn.functional as F
 
-def set_dataloader(dataset, path, nimg, batch_size):
+def set_dataloader(dataset, path, save_nimg, flatness_nimg, batch_size):
     dataset = dataset.lower()
 
     # Image transform setting
@@ -19,12 +19,17 @@ def set_dataloader(dataset, path, nimg, batch_size):
     elif dataset == 'cifar100':
         data = datasets.CIFAR100(root=path, train=False, download=True, transform=transform)
     
-    indices = torch.randperm(len(data))[:nimg]
-    sampler = SubsetRandomSampler(indices)
+    indices = torch.randperm(len(data))
 
-    dataloader = DataLoader(data, batch_size=batch_size, sampler=sampler)
+    save_indices = indices[:save_nimg]
+    sampler = SubsetRandomSampler(save_indices)
+    save_loader = DataLoader(data, batch_size=batch_size, sampler=sampler)
 
-    return dataloader, indices
+    flatness_indices = indices[:flatness_nimg]
+    sampler = SubsetRandomSampler(flatness_indices)
+    flatness_loader = DataLoader(data, batch_size=1, sampler=sampler)
+
+    return save_loader, flatness_loader, save_indices, flatness_indices
 
 def map_dataloader(model, dataloader, batch_size, device, dg, dr):
     gmin, gmax, gnum = [eval(x) for x in dg.split(":")]

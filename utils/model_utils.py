@@ -1,16 +1,16 @@
-import torch
+import torch, time
 from torchvision import models
 
 def set_model(name, path):
     model = get_model(name)
-    # model.load_state_dict(torch.load(path))
+    model.load_state_dict(torch.load(path, map_location='cpu'))
     return model
 
 def get_model(name):
     n_way = 10
     name = name.lower()
     if name == 'resnet18':
-        model = models.resnet18(pretrained='IMAGENET1K_V2')
+        model = models.resnet18()
         num_ftrs = model.fc.in_features
         model.fc = torch.nn.Sequential(
             torch.nn.Dropout(0.5),
